@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict XJIwuQ7QjidaEG1nxrXSocDnRhVqXIdFP5dh0MvDRXBWJjhcH1rrcEV3YQvyRAa
+\restrict z4TFT1olsKt5N4oBVahUE86xXzZW450GJve4J0tdWlPMdiyB0cipUZQ6XYvbnJA
 
 -- Dumped from database version 16.15 (Debian 16.15-1.pgdg13+2)
 -- Dumped by pg_dump version 16.15 (Debian 16.15-1.pgdg13+2)
@@ -2049,5 +2049,5 @@ COPY analytics.marketing_cost_per_user (user_id, channel, campaign, acquired_at,
 -- PostgreSQL database dump complete
 --
 
-\unrestrict XJIwuQ7QjidaEG1nxrXSocDnRhVqXIdFP5dh0MvDRXBWJjhcH1rrcEV3YQvyRAa
+\unrestrict z4TFT1olsKt5N4oBVahUE86xXzZW450GJve4J0tdWlPMdiyB0cipUZQ6XYvbnJA
 
