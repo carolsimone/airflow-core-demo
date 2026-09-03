@@ -1,0 +1,42 @@
+name: airflow-core-demo
+
+services:
+  warehouse:                       # SHARED warehouse. Real orgs run this as separate infra; colocated here for the demo.
+    image: postgres:16
+    environment:
+      POSTGRES_DB: continuo_dbt
+      POSTGRES_USER: continuo_svc
+      POSTGRES_PASSWORD: runner
+    ports: ["5433:5432"]           # host 5433: local 5432 was already bound on this dev host. In-network callers always use warehouse:5432.
+    volumes:
+      - warehouse-data:/var/lib/postgresql/data
+      - ./fixtures:/docker-entrypoint-initdb.d:ro
+    networks: [analytics_net]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "continuo_svc", "-d", "continuo_dbt"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  airflow-meta:                    # Airflow's OWN metadata db, separate from the warehouse
+    image: postgres:16
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+    volumes: [airflow-meta-data:/var/lib/postgresql/data]
+    networks: [airflow_internal]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  warehouse-data:
+  airflow-meta-data:
+
+networks:
+  analytics_net:
+    name: analytics_net            # referenced as external by airflow-finance-demo
+  airflow_internal:
