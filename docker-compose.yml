@@ -7,7 +7,7 @@ services:
       POSTGRES_DB: continuo_dbt
       POSTGRES_USER: continuo_svc
       POSTGRES_PASSWORD: runner
-    ports: ["5433:5432"]           # host 5433: local 5432 was already bound on this dev host. In-network callers always use warehouse:5432.
+    ports: ["5432:5432"]
     volumes:
       - warehouse-data:/var/lib/postgresql/data
       - ./fixtures:/docker-entrypoint-initdb.d:ro
