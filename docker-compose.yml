@@ -1,5 +1,26 @@
 name: airflow-core-demo
 
+x-airflow-common: &airflow-common
+  build:
+    context: ./airflow
+    args:
+      DBT_CORE_VERSION: ${DBT_CORE_VERSION:-1.12.0b1}
+      DBT_POSTGRES_VERSION: ${DBT_POSTGRES_VERSION:-1.10.0}
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-meta:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+    POSTGRES_HOST: warehouse
+    POSTGRES_PORT: '5432'
+    POSTGRES_DB: continuo_dbt
+    POSTGRES_USER: continuo_svc
+    POSTGRES_PASSWORD: runner
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./dbt:/opt/dbt/core
+  networks: [analytics_net, airflow_internal]
+
 services:
   warehouse:                       # SHARED warehouse. Real orgs run this as separate infra; colocated here for the demo.
     image: postgres:16
@@ -31,6 +52,30 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command: -c "airflow db migrate && airflow users create -u admin -p admin -f a -l b -r Admin -e a@b.c || true"
+    depends_on:
+      airflow-meta: {condition: service_healthy}
+    restart: on-failure
+
+  scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      airflow-init: {condition: service_completed_successfully}
+      warehouse: {condition: service_healthy}
+    restart: unless-stopped
+
+  webserver:
+    <<: *airflow-common
+    command: webserver
+    ports: ["8080:8080"]
+    depends_on:
+      airflow-init: {condition: service_completed_successfully}
+    restart: unless-stopped
 
 volumes:
   warehouse-data:
