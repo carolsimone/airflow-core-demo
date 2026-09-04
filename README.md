@@ -14,15 +14,23 @@ Two teams, two separate Airflows, one shared warehouse. This is what a dbt pipel
 
 ## Run the "before" (happy path)
 
-```bash
-# core team (starts the shared warehouse + core Airflow)
-cd airflow-core-demo && make up
-# trigger core's daily run, wait for green at http://localhost:8080 (admin/admin)
-docker compose exec -T scheduler airflow dags trigger core_daily
+Start the core team's stack (this also starts the shared warehouse):
 
-# finance team (separate Airflow, same warehouse)
+```bash
+cd airflow-core-demo && make up
+```
+
+Wait until `core_daily` shows up at http://localhost:8080 (admin/admin) — the scheduler needs a moment to parse it after `up` returns — then trigger it and wait for green:
+
+```bash
+docker compose exec -T scheduler airflow dags trigger core_daily
+```
+
+Then start the finance team's stack (separate Airflow, same warehouse), wait for `finance_daily` at http://localhost:8081, and trigger it:
+
+```bash
 cd ../airflow-finance-demo && make up
-docker compose exec -T scheduler airflow dags trigger finance_daily   # green at http://localhost:8081
+docker compose exec -T scheduler airflow dags trigger finance_daily
 ```
 
 Result: both green. finance's `analytics.ltv_per_user` is built on core's `revenue_per_user`.
@@ -57,7 +65,7 @@ On Continuo the same change is rejected at release time, before it ships, becaus
 
 ## Dependency map (short)
 
-`finance.ltv_per_user → analytics.revenue_per_user (core)` is the featured edge. `marketing_cost_per_user` and `fx_transactions_eur` are pre-loaded fixtures (frozen tables, not teams) so core builds standalone. `dbt_daily_kpis` is excluded — it belongs to a python service outside this two-team demo.
+`finance.ltv_per_user → analytics.revenue_per_user (core)` is the featured edge. `fx_transactions_eur` and `marketing_cost_per_user` are pre-loaded fixtures (frozen tables, not teams): `fx_transactions_eur` lets `core` build standalone, and `marketing_cost_per_user` lets `finance` run without a marketing team. `dbt_daily_kpis` is excluded — it belongs to a python service outside this two-team demo.
 
 ## Notes / troubleshooting
 
