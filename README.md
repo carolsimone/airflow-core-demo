@@ -26,7 +26,7 @@ Wait until `core_daily` shows up at http://localhost:8080 (admin/admin) — the 
 docker compose exec -T scheduler airflow dags trigger core_daily
 ```
 
-Then start the finance team's stack (separate Airflow, same warehouse), wait for `finance_daily` at http://localhost:8081, and trigger it:
+Then start the finance team's stack (separate Airflow, same warehouse), wait for `finance_daily` at http://127.0.0.1:8081 (admin/admin), and trigger it:
 
 ```bash
 cd ../airflow-finance-demo && make up
@@ -69,6 +69,7 @@ On Continuo the same change is rejected at release time, before it ships, becaus
 
 ## Notes / troubleshooting
 
+- **Logging into one Airflow logs you out of the other?** Browsers share cookies across ports, so two Airflows on `localhost` overwrite each other's session. Open core at http://localhost:8080 and finance at http://127.0.0.1:8081: a different host name gives each UI its own session.
 - **Host port 5432 already bound?** Create a gitignored `docker-compose.override.yml`:
   ```yaml
   services:
