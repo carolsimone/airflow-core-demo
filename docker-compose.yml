@@ -11,6 +11,9 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-meta:5432/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+    # Shared by webserver + scheduler: the webserver signs log fetches with it. Unset, each
+    # container generates its own and the Logs tab shows 403 FORBIDDEN. Local demo value only.
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY:-airflow-core-demo-local}
     POSTGRES_HOST: warehouse
     POSTGRES_PORT: '5432'
     POSTGRES_DB: continuo_dbt
